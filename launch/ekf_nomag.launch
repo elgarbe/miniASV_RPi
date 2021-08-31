@@ -1,0 +1,10 @@
+<launch>
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_nomag" clear_params="true">
+    <rosparam command="load" file="$(find asv_chori)/config/ekf_nomag.yaml" />
+
+    <remap from="/odometry/filtered" to="odometry/filtered_nomag" />
+
+  </node>
+
+
+</launch>

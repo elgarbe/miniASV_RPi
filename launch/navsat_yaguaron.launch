@@ -1,0 +1,11 @@
+<launch>
+
+  <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" output="screen">
+    <rosparam command="load" file="$(find asv_chori)/config/navsat_yaguaron.yaml" />
+
+    <remap from="gps/fix" to="f9p/ublox/fix" />
+    <remap from="imu/data" to="chori/imu/data"/>
+
+  </node>
+
+</launch>

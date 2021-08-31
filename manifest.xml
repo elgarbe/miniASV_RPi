@@ -1,0 +1,14 @@
+<package>
+  <description brief="asv_chori">
+
+     asv_chori
+
+  </description>
+  <author>rpi</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/asv_chori</url>
+
+</package>
+
+

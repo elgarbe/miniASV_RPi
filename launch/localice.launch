@@ -1,0 +1,17 @@
+
+<launch>
+  <param name="/use_sim_time" value="false"/>
+
+  <!-- Static transform -->
+  <include file="$(find asv_chori)/launch/static_tf.launch"/>
+    <!-- Imu-filter -->
+  <include file="$(find asv_chori)/launch/imu_filter.launch"/> 
+  <!-- EKF -->
+  <include file="$(find asv_chori)/launch/ekf_yaguaron.launch"/>
+  <!-- Navsat -->
+  <include file="$(find asv_chori)/launch/navsat_yaguaron.launch"/>
+<!--
+  <node pkg="rl_yaguaron" type="calc_mag_heading.py" name="orient_from_mag" output="screen"/>
+-->
+
+</launch>

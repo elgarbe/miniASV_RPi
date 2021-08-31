@@ -1,0 +1,21 @@
+<launch>
+   <param name="/use_sim_time" value="false"/>
+
+   <!-- rosserial -->
+   <include file="$(find asv_chori)/launch/rosserial.launch"/>
+   
+   <!-- Static transform -->
+  <node pkg="tf" type="static_transform_publisher" name="imu_link_broadcaster1" args="0 0 0 0 0 0 base_link1 imu_link 10"/>
+  <node pkg="tf" type="static_transform_publisher" name="imu_link_broadcaster2" args="0 0 0 0 0 0 base_link2 imu_link 10"/>
+   
+   <!-- Imu-filter -->
+   <include file="$(find asv_chori)/launch/imu_filter_nomag.launch"/> 
+   <!-- Imu-filter -->
+   <include file="$(find asv_chori)/launch/imu_filter_mag.launch"/> 
+
+   <!-- EKF -->
+   <include file="$(find asv_chori)/launch/ekf_nomag.launch"/>
+   <!-- EKF -->
+   <include file="$(find asv_chori)/launch/ekf_mag.launch"/>
+   
+</launch>
