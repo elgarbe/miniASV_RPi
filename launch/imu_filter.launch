@@ -1,14 +1,13 @@
 <launch>
-    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_madgwick" ns="chori">
-      <param name="~use_mag" value="false" />
+    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_madgwick">
+      <param name="~use_mag" value="true" />
       <param name="~use_magnetic_field_msg" value="true" />
       <param name="world_frame" value="enu" />
       <param name="publish_tf" value="false" />
       <param name="orientation_stddev" value="0.001" />
       <param name="publish_debug_topics" value="false" />
-      <!--
-      <remap from="imu/data_raw" to="imu/data_raw" />
-      <remap from="imu/mag" to="imu/mag" />
-      -->
+
+      <remap from="imu/data_raw" to="chori/imu/data_raw" />
+      <remap from="imu/mag" to="chori/imu/mag" />
     </node>
 </launch>
