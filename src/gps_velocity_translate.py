@@ -32,8 +32,8 @@ class GPS_vel_translate:
 
         new_msg.header = msg.header
         # Roto la velocidad de ENU al Body usando el Heading
-        new_msg.twist.twist.linear.x = Vx * ch - Vy sh
-        new_msg.twist.twist.linear.y = Vx * sh + Vy ch
+        new_msg.twist.twist.linear.x = Vx * ch - Vy * sh
+        new_msg.twist.twist.linear.y = Vx * sh + Vy * ch
         new_msg.twist.twist.linear.z = msg.twist.twist.linear.z
         new_msg.twist.twist.angular = msg.twist.twist.angular
         new_msg.twist.covariance = msg.twist.covariance
