@@ -7,10 +7,22 @@ fvel_pid:
     kp: 1.0
     ki: 0.5
     kd: 0.0
-    isats: [-5.0, 5.0]
+    isats: [-1.0, 1.0]
 
 yr_pid:
     kp: 1.0
     ki: 0.5
     kd: 0.0
     isats: [-0.5, 0.5]
+
+velocity_topic:
+    odometry/filtered
+
+reference_topic:
+    chori/references
+
+command_topic:
+    miniASV/command
+
+command_motor_topic:
+    cmd_pwm

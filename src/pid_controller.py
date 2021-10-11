@@ -40,9 +40,10 @@ class PIDControllerNode(object):
 
     Lee la velocidad y referencia en 2 tópicos distintos.
      * odometry/filtered: mensajes de tipo Odometry. La salida de robot_localization
-     * miniASV/reference: mensajes de tipo Twist_Stamped
+     * chori/reference: mensajes de tipo Twist_Stamped, publicado por la Chori en funcion del RadioControl
 
     Publica el comando en miniASV/command, de tipo WrenchStamped
+    Publica el comando en cmd_pwm, de tipo Vector3, al cual se suscribe la chori
 
     Utilizando el sincronizador automático de mensajes de ROS, cuando
     llegan 2 mensajes juntos de velocidad y referencia, se
@@ -52,20 +53,14 @@ class PIDControllerNode(object):
     def __init__(self):
         self.rate = float(rospy.get_param('~rate', '100'))    # 100 Hz
         self.slop = float(rospy.get_param('~slop', 0.2))
-        # self.fvel_kp = float(rospy.get_param('~kp', '1.0'))
-        # self.fvel_ki = float(rospy.get_param('~ki', '0.0'))
-        # self.fvel_kd = float(rospy.get_param('~kd', '0.0'))
-        # self.fvel_I_max = float(rospy.get_param('~I_max', '100.0'))
-        # self.fvel_I_min = float(rospy.get_param('~I_min', '-100.0'))
         fvel_pid_param = rospy.get_param('~fvel_pid', None)
         yr_pid_param = rospy.get_param('~yr_pid', None)
-        # print(fvel_pid_param)
 
-        velocity_topic = rospy.get_param('~velocity_topic', 'odometry/filtered')
-        reference_topic = rospy.get_param('~reference_topic', 'chori/references')
-        # print (reference_topic)
-        command_topic = rospy.get_param('~command_topic', 'miniASV/command')
-        command_motors_topic = rospy.get_param('~command_motor_topic', 'cmd_pwm')
+        velocity_topic = rospy.get_param('~velocity_topic', None)
+        reference_topic = rospy.get_param('~reference_topic', None)
+
+        command_topic = rospy.get_param('~command_topic', None)
+        command_motors_topic = rospy.get_param('~command_motor_topic', None)
 
         rospy.loginfo("[PID] Waiting for reference initialization..")
         reference = rospy.wait_for_message(reference_topic, TwistStamped)
@@ -74,17 +69,12 @@ class PIDControllerNode(object):
 
         self.t = velocity.header.stamp.to_sec()
 
-        # TODO: constantes PID hardcodeadas. Usar yaml y launchfiles
-        # fvel_pid_cte =	{"kp": 1.0, "ki": 0.5, "kd": 0.0, "isats": [-5.0, 5.0] }
-        # yr_pid_cte =	{"kp": 1.0, "ki": 0.5, "kd": 0.0, "isats": [-1.0, 1.0] }
-
         # TODO: Por ahora son 2 PID, quizás podría usar una array de ellos como en el cluster
         self.fvel_pid = pid.PIDController(None, self.t, None, **fvel_pid_param)
         self.yr_pid = pid.PIDController(None, self.t, None, **yr_pid_param)
 
         # self.fvel_pid = PIDController(kp=1.0, ki=0.5, kd=0.0, t0=self.t, isats=[-2.0, 2.0])
         # self.yr_pid = PIDController(kp=1.0, ki=0.5, kd=0.0, t0=self.t, isats=[-0.5, 0.5])
-
 
         # Me suscribo al tópico donde se envian los datos de velocidad
         self.velocity_subs = message_filters.Subscriber(velocity_topic, Odometry)
@@ -171,8 +161,6 @@ class PIDControllerNode(object):
     def compensate_force(self, force_x, tau_z):
         fx = force_x
         tauz = tau_z
-        # print fx, tauz
-        # print
         # Maximo Torque posible alrededor de Z 
         # Se tiene en cuenta el Thrust en backward ya que es menor
         # al en forward
@@ -183,8 +171,6 @@ class PIDControllerNode(object):
         # Thrust de cada motor para conseguir el Torque en Z del PID
         left_thrust = -tauz/(2*BOAT_WIDTH)
         right_thrust = tauz/(2*BOAT_WIDTH)
-
-        # print left_thrust, right_thrust
 
         # Calculamos el máximo Thrust para cumplir con la fuerza en X
         # pedida por el PID LUEGO de asegurar el thrust para el giro
@@ -211,8 +197,6 @@ class PIDControllerNode(object):
         # Saturo los valores de thrust de cada motor
         left_thrust = self.saturate_thrusters(left_thrust)
         right_thrust = self.saturate_thrusters(right_thrust)
-
-        # print left_thrust, right_thrust
 
         # Preparo el mensaje de PWM (??) para cada motor
         cmd_output = Vector3()
