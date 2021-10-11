@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="pid_config"  default="$(find asv_chori)/config/pid.yaml"/>
+
+    <!-- Controller -->
+    <node name="miniASV_control" pkg="asv_chori" type="pid_controller.py" output="screen">
+        <rosparam command="load"    file="$(arg pid_config)"/>
+    </node>
+
+</launch>
