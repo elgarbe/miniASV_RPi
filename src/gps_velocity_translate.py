@@ -17,7 +17,7 @@ class GPS_vel_translate:
 
         # Me suscribo al tópico donde se envia la velocidad 
         self.mag_raw_sub = rospy.Subscriber("/f9p/ublox/fix_velocity", TwistWithCovarianceStamped , self.gps_vel_cb)
-        self.mag_raw_sub = rospy.Subscriber("/chori/imu/data_raw", Imu , self.imu_cb)
+        self.mag_raw_sub = rospy.Subscriber("/imu/data", Imu , self.imu_cb)
         self.gps_vel_body_pub = rospy.Publisher("/chori/gps_vel_body", TwistWithCovarianceStamped, queue_size=1)
 
         rospy.loginfo("[GPS vel] Translating GPS velocity fix from ENU to body")
@@ -44,7 +44,7 @@ class GPS_vel_translate:
         orientation_q = dato.orientation
         orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
         (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
-        self.heading =  yaw * 180/3.141592
+        self.heading =  yaw #* 180/3.141592
 
 def main(args):
     ic = GPS_vel_translate()
