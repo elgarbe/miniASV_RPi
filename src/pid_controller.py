@@ -15,7 +15,7 @@ import rospy
 import message_filters
 
 # Import the messages we're interested in sending and receiving, and having and sharing
-from geometry_msgs.msg import TwistStamped, WrenchStamped, Vector3
+from geometry_msgs.msg import TwistStamped, WrenchStamped, Vector3, Vector3Stamped
 from nav_msgs.msg import Odometry
 
 # Libraries for data manipulation
@@ -59,7 +59,7 @@ class PIDControllerNode(object):
         velocity_topic = rospy.get_param('~velocity_topic', None)
         reference_topic = rospy.get_param('~reference_topic', None)
 
-        command_topic = rospy.get_param('~command_topic', None)
+        command_topic = rospy.get_param('~cmd_wrench', None)
         command_motors_topic = rospy.get_param('~command_motor_topic', None)
 
         rospy.loginfo("[PID] Waiting for reference initialization..")
@@ -85,17 +85,11 @@ class PIDControllerNode(object):
         rospy.loginfo('[PID] Subscribing to ASV reference topic: %s', reference_topic)
 
         # Creo el publicador que despacha los mensajes de fuerzas/torques de control
-        self.command_publisher = rospy.Publisher(
-            command_topic,
-            WrenchStamped,
-            queue_size=MSG_QUEUE_MAXLEN)
+        self.command_publisher = rospy.Publisher(command_topic, WrenchStamped, queue_size=MSG_QUEUE_MAXLEN)
         rospy.loginfo('[PID] Will publish ASV force/torque commands to topic: %s', command_topic)
 
         # Creo el publicador que despacha los mensajes del control a los motores
-        self.cmd_motors_publisher = rospy.Publisher(
-            command_motors_topic,
-            Vector3,
-            queue_size=MSG_QUEUE_MAXLEN)
+        self.cmd_motors_publisher = rospy.Publisher(command_motors_topic, Vector3, queue_size=MSG_QUEUE_MAXLEN)
         rospy.loginfo('[PID] Will publish ASV motor commands to topic: %s', command_motors_topic)
 
         # Sincronizador de mensajes...
@@ -138,6 +132,7 @@ class PIDControllerNode(object):
             message.wrench.force.x = fx
             message.wrench.torque.z = tz
             self.command_publisher.publish(message)
+
 
             # Con las fuerzas/torques hago la conversión a thrust the cada motor
             # y publico dicho comando

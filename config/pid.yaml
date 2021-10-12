@@ -26,3 +26,6 @@ command_topic:
 
 command_motor_topic:
     cmd_pwm
+
+command_wrench_topic:
+    cmd_wrench
