@@ -10,6 +10,9 @@
    <!-- GPS Fix Vel ENU to body translate -->
    <include file="$(find asv_chori)/launch/gps_vel_translate.launch"/>
 
+   <!-- GPS-Gyro heading -->
+   <include file="$(find asv_chori)/launch/heading_gps-gyro.launch"/>
+
    <!-- Static transform -->
    <include file="$(find asv_chori)/launch/static_tf.launch"/>
    

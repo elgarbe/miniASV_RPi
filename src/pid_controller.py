@@ -59,7 +59,7 @@ class PIDControllerNode(object):
         velocity_topic = rospy.get_param('~velocity_topic', None)
         reference_topic = rospy.get_param('~reference_topic', None)
 
-        command_topic = rospy.get_param('~cmd_wrench', None)
+        command_topic = rospy.get_param('~command_wrench_topic', None)
         command_motors_topic = rospy.get_param('~command_motor_topic', None)
 
         rospy.loginfo("[PID] Waiting for reference initialization..")
@@ -110,7 +110,7 @@ class PIDControllerNode(object):
 
         # Obtengo las referencias de Forward Vel y Yaw Rate
         fvel_ref = reference_msg.twist.linear.x
-        yr_ref   = reference_msg.twist.angular.z
+        yr_ref   = -reference_msg.twist.angular.z
 
         # Calculo el intervalo de tiempo entre las muestras
         delta_t = velocity_msg.header.stamp.to_sec() - self.t
@@ -118,14 +118,18 @@ class PIDControllerNode(object):
 
         if delta_t > 0.0:
             # Genero las acciones de control
+            # fvel_meas=0.0
             fvel_cmd = self.fvel_pid.update(fvel_ref, fvel_meas, self.t)
             # print(fvel_ref, fvel_meas, self.t, fvel_cmd)
+            # yr_ref=0.0
+            # yr_meas=0.0
             yr_cmd   = self.yr_pid.update(yr_ref, yr_meas, self.t)
+            #fvel_cmd=0
+            # print yr_ref, yr_meas, yr_cmd
+            #yr_cmd=0
 
-            # print fvel_meas, yr_meas, fvel_ref, yr_ref, fvel_cmd, yr_cmd
-
-            fx = fvel_cmd #self.deadzone_force(fvel_cmd, 2*MAX_FWD_THRUST * 0.06, 2*MAX_BCK_THRUST * 0.06)
-            tz = yr_cmd #self.deadzone_force(yr_cmd, 2, 2)
+            fx = fvel_cmd       #self.deadzone_force(fvel_cmd, 2*MAX_FWD_THRUST * 0.06, 2*MAX_BCK_THRUST * 0.06)
+            tz = -yr_cmd         #self.deadzone_force(yr_cmd, 2, 2)
             # Creo el mensaje de las fuerzas y torques solicitados
             message = WrenchStamped()
             message.header.stamp = rospy.Time.now()
@@ -224,7 +228,7 @@ class PIDControllerNode(object):
     # PWM = (Thrust + 15.0854) / 0.009876 = Trhust * 101.25 + 1500
     # TODO: Ver en Backward
     def calculate_motor_setting (self, thrust):
-        output = 0.0
+        output = 1500.0
         if (thrust > 0):
             output = thrust * 101.25 + 1500 #(MAX_OUTPUT/MAX_FWD_THRUST)
         else:

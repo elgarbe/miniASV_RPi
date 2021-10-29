@@ -2,8 +2,8 @@
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
     <rosparam command="load" file="$(find asv_chori)/config/ekf_yaguaron.yaml" />
 
-    <!--  Placeholder for output topic remapping
+    <!--  Placeholder for output topic remapping-->
     <remap from="imu/data" to="chori/imu/data"/>
-  -->
+  
   </node>
 </launch>

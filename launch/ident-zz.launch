@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="pid_config"  default="$(find asv_chori)/config/pid.yaml"/>
+    <arg name="ident_config"  default="$(find asv_chori)/config/ident.yaml"/>
+
+    <!-- Controller -->
+    <node name="miniASV_control" pkg="asv_chori" type="ident_accel.py" output="screen">
+        <rosparam command="load"    file="$(arg pid_config)"/>
+        <rosparam command="load"    file="$(arg ident_config)"/>
+    </node>
+
+</launch>

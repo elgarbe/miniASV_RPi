@@ -1,8 +1,9 @@
 <launch>
 
  <node pkg="rosbag" type="record" name="rosbag_record_diag"
-       args="record -o /home/rpi/bag_files/test -e /f9p/.* /chori/.*"/>
+       args="record -o /home/rpi/bag_files/test /f9p/ublox/navrelposned /f9p/ublox/fix /f9p/ublox/fix_velocity /chori/imu/data_raw /chori/imu/mag /cmd_pwm"/>
         <!--
+       args="record -o /home/rpi/bag_files/test -e /f9p/.* /chori/.*"/>
        args="record -o /home/elgarbe/bags/test /asv/mavros/imu/data /asv/mavros/global_position/global /asv/mavros/global_position/local /asv/mavros/global_position/raw/fix	/asv/mavros/local_position/odom /asv/odom -e /f9p/.* /chori/.*"/>
         -->
 </launch>

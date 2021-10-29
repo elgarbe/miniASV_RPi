@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="asv_chori" type="heading_gps-gyro.py" name="heading_gps_gyro" output="screen">
+    </node>
+
+</launch>

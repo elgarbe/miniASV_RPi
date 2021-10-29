@@ -5,7 +5,7 @@
     <arg name="ident_config"  default="$(find asv_chori)/config/ident.yaml"/>
 
     <!-- Controller -->
-    <node name="miniASV_control" pkg="asv_chori" type="ident_writer.py" output="screen">
+    <node name="miniASV_control" pkg="asv_chori" type="ident_accel.py" output="screen">
         <rosparam command="load"    file="$(arg pid_config)"/>
         <rosparam command="load"    file="$(arg ident_config)"/>
     </node>

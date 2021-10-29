@@ -4,15 +4,15 @@
 # No hay saturación para las señales de control, si se quiere saturar,
 # que se haga aparte
 fvel_pid:
-    kp: 1.0
-    ki: 0.5
+    kp: 3.0
+    ki: 1.0
     kd: 0.0
     isats: [-1.0, 1.0]
 
 yr_pid:
-    kp: 1.0
-    ki: 0.5
-    kd: 0.0
+    kp: 1.5
+    ki: 0.1
+    kd: 0.05
     isats: [-0.5, 0.5]
 
 velocity_topic:
