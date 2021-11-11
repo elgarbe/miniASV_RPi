@@ -107,40 +107,40 @@ class IdentZZNode(object):
         # Logueo durante 1 segundo la velocidad actual
         if self.auto_ref and t <= 1:
             self.log = True
-	        rospy.loginfo("[IDNTZZ] Inicio Experimento.")	
+	    rospy.loginfo("[IDNTZZ] Inicio Experimento.")	
         # Por 10 segundos hago un escalon de velocidad angular CW
         elif self.auto_ref and t > 1 and t <= 11:
             self.pwm_l_r = self.pwm_l_step
-            self.pwm_r_r = 0
+            self.pwm_r_r = 1500
         # Por 10 segundos hago un escalon de velocidad angular CCW
         elif self.auto_ref and t > 11 and t <= 21:
-            self.pwm_l_r = 0
+            self.pwm_l_r = 1500
             self.pwm_r_r = self.pwm_r_step
         # Por 10 segundos hago un escalon de velocidad angular CW
         elif self.auto_ref and t > 21 and t <= 31:
             self.pwm_l_r = self.pwm_l_step
-            self.pwm_r_r = 0
+            self.pwm_r_r = 1500
         # Por 10 segundos hago un escalon de velocidad angular CCW
         elif self.auto_ref and t > 31 and t <= 41:
-            self.pwm_l_r = 0
+            self.pwm_l_r = 1500
             self.pwm_r_r = self.pwm_r_step
         # Por 10 segundos hago un escalon de velocidad angular CW
         elif self.auto_ref and t > 41 and t <= 51:
             self.pwm_l_r = self.pwm_l_step
-            self.pwm_r_r = 0
+            self.pwm_r_r = 1500
         # Por 10 segundos hago un escalon de velocidad angular CCW
         elif self.auto_ref and t > 51 and t <= 61:
-            self.pwm_l_r = 0
+            self.pwm_l_r = 1500
             self.pwm_r_r = self.pwm_r_step
         # Fin del experimento
-	    elif self.auto_ref and t > 61:
+        elif self.auto_ref and t > 61:
             self.pwm_l_step = 1500
             self.pwm_r_step = 1500
             self.pwm_l_r = 1500
             self.pwm_r_r = 1500
             self.auto_ref = 0
             self.log = False
-	        rospy.loginfo("[IDNTZZ] Fin Experimento.")	
+	    rospy.loginfo("[IDNTZZ] Fin Experimento.")	
 
         # Publico el comando de PWM a los motores para la Chori
         message = Vector3()

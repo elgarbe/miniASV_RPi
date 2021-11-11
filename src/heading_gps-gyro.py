@@ -45,19 +45,18 @@ class HeadingNode(object):
         # Bandera para indicar que la medición del GPS es válida
         self.valid_gps_heading = False
 
+        # Creo los publishers
+        self.gyro_heading_pub = rospy.Publisher(gyro_heading_topic, Vector3, queue_size=MSG_QUEUE_MAXLEN)
+        rospy.loginfo("[Heading] Will publish gyro heading to topic %s", gyro_heading_topic)
+        self.gps_heading_pub = rospy.Publisher(gps_heading_topic, Vector3, queue_size=MSG_QUEUE_MAXLEN)
+        rospy.loginfo("[Heading] Will publish GPS heading to topic %s", gps_heading_topic)
+        self.imu_pub = rospy.Publisher(imu_topic, Imu, queue_size=MSG_QUEUE_MAXLEN)
+        rospy.loginfo("[Heading] Will publish IMU with orientation to topic %s", imu_topic)
+
         # Me suscribo al tópico donde se envia la velocidad 
         self.gps_sub = rospy.Subscriber(gps_topic, NavRELPOSNED9 , self.gps_cb)
         self.gyro_sub = rospy.Subscriber(gyro_topic, Imu , self.imu_cb)
         self.imu_filt_sub = rospy.Subscriber(imu_filt_topic, Imu , self.imu_filt_cb)
-
-        self.gyro_heading_pub = rospy.Publisher(gyro_heading_topic, Vector3, queue_size=MSG_QUEUE_MAXLEN)
-        rospy.loginfo("[Heading] Will publish gyro heading to topic %s", gyro_heading_topic)
-
-        self.gps_heading_pub = rospy.Publisher(gps_heading_topic, Vector3, queue_size=MSG_QUEUE_MAXLEN)
-        rospy.loginfo("[Heading] Will publish GPS heading to topic %s", gps_heading_topic)
-
-        self.imu_pub = rospy.Publisher(imu_topic, Imu, queue_size=MSG_QUEUE_MAXLEN)
-        rospy.loginfo("[Heading] Will publish IMU with orientation to topic %s", imu_topic)
 
     def gps_cb(self, msg):
         flags = msg.flags
@@ -92,7 +91,7 @@ class HeadingNode(object):
             rospy.loginfo("[Heading] GPS lost heading. Length error: %s [cm], Fix type: %s", lenght_error, fix_type)
         if self.valid_gps_heading:
             # Obtengo el heading del GPS y lo paso a Grados
-            self.gps_heading = 270 - heading * 1e-5 
+            self.gps_heading = 360 - heading * 1e-5 
             # Publico el dato para debug
             dato = Vector3()
             dato.x = self.gps_heading

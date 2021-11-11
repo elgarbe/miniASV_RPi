@@ -1,0 +1,9 @@
+<launch>
+
+ <node pkg="rosbag" type="record" name="rosbag_record_diag" output="screen"
+       args="record -o /home/rpi/bag_files/test_pid /odometry/filtered /control/twist_ref /control/course_ref /cmd_wrench /cmd_pwm"/>
+        <!--
+       args="record -o /home/rpi/bag_files/test -e /f9p/.* /chori/.*"/>
+       args="record -o /home/elgarbe/bags/test /asv/mavros/imu/data /asv/mavros/global_position/global /asv/mavros/global_position/local /asv/mavros/global_position/raw/fix	/asv/mavros/local_position/odom /asv/odom -e /f9p/.* /chori/.*"/>
+        -->
+</launch>

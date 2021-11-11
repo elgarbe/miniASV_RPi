@@ -5,21 +5,29 @@
 # que se haga aparte
 fvel_pid:
     kp: 3.0
-    ki: 1.0
-    kd: 0.0
+    ki: 0.1
+    kd: 0.05
     isats: [-1.0, 1.0]
 
 yr_pid:
-    kp: 1.5
-    ki: 0.1
+    kp: 0.7
+    ki: 0.0
+    kd: 0.05
+    isats: [-0.5, 0.5]
+
+y_pid:
+    kp: 0.5
+    ki: 0.0
     kd: 0.05
     isats: [-0.5, 0.5]
 
 velocity_topic:
     odometry/filtered
 
-reference_topic:
-    chori/references
+twist_ref_topic:
+    control/twist_ref
+course_ref_topic:
+    control/course_ref
 
 command_topic:
     miniASV/command

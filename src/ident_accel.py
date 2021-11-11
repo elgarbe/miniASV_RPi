@@ -106,7 +106,7 @@ class IdentWriterNode(object):
         # Logueo durante 1 segundo la velocidad actual
         if self.auto_ref and t <= 1:
             self.log = True
-	        rospy.loginfo("[IDNT] Inicio Experimento.")	
+            rospy.loginfo("[IDNT] Inicio Experimento.")	
         # Por 15 segundos hago un escalon de velocidad
         elif self.auto_ref and t > 1 and t <= 16:
             self.pwm_l_r = self.pwm_l_step
@@ -118,10 +118,10 @@ class IdentWriterNode(object):
             self.pwm_l_r = 1500
             self.pwm_r_r = 1500
         # Fin del experimento
-	    elif self.auto_ref and t > 26:
+	elif self.auto_ref and t > 26:
             self.auto_ref = 0
             self.log = False
-	        rospy.loginfo("[IDNT] Fin Experimento.")	
+	    rospy.loginfo("[IDNT] Fin Experimento.")	
 
         # Publico el comando de PWM a los motores para la Chori
         message = Vector3()

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="pid_config"  default="$(find asv_chori)/config/pid.yaml"/>
+
+    <!-- Controller -->
+    <node name="ref_twist" pkg="asv_chori" type="ref_twist_pub.py" output="screen">
+        <rosparam command="load"    file="$(arg pid_config)"/>
+    </node>
+
+</launch>
