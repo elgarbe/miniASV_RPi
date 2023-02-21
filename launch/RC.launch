@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="asv_chori" type="RC.py" name="radio_control" output="screen">
+    </node>
+
+</launch>
