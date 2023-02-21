@@ -35,7 +35,7 @@ class GuidanceGPSNode(object):
         self.dest_pos_sub = rospy.Subscriber(dest_pos_topic, Pose2D, self.dest_pos_cb)
         # Me suscribo al tópico donde se envian los datos de velocidad
         self.velo_subs = rospy.Subscriber(velocity_topic, Odometry, self.curr_heading_cb)
-        rospy.loginfo('[PID] Subscribing to ASV velocity topic: %s', velocity_topic)
+        rospy.loginfo('[GUID] Subscribing to ASV velocity topic: %s', velocity_topic)
 
         # Creo el Publisher para la referencia
         self.reference_publisher = rospy.Publisher(reference_topic, CourseStamped, queue_size=10)

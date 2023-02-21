@@ -16,10 +16,11 @@ class GPS_vel_translate:
 
     def __init__(self):
 
+        self.gps_vel_body_pub = rospy.Publisher("/gps_vel_body", TwistWithCovarianceStamped, queue_size=1)
+
         # Me suscribo al tópico donde se envia la velocidad 
-        self.mag_raw_sub = rospy.Subscriber("/f9p/ublox/fix_velocity", TwistWithCovarianceStamped , self.gps_vel_cb)
-        self.mag_raw_sub = rospy.Subscriber("/chori/imu/data", Imu , self.imu_cb)
-        self.gps_vel_body_pub = rospy.Publisher("/chori/gps_vel_body", TwistWithCovarianceStamped, queue_size=1)
+        self.fix_vel_sub = rospy.Subscriber("/f9p/ublox/fix_velocity", TwistWithCovarianceStamped , self.gps_vel_cb)
+        self.imu_data_sub = rospy.Subscriber("/chori/imu/data", Imu , self.imu_cb)
 
         rospy.loginfo("[GPS vel] Translating GPS velocity fix from ENU to body")
         self.heading = 0.0
@@ -49,7 +50,7 @@ class GPS_vel_translate:
         # new_msg = TwistWithCovarianceStamped()
 
         # new_msg.header = msg.header
-        # # Roto la velocidad de ENU al Body usando el Heading
+        # # Roto la velocidad de ENU al Body usando el Heading  
         # new_msg.twist.twist.linear.x = Vx * ch - Vy * sh
         # new_msg.twist.twist.linear.y = Vx * sh + Vy * ch
         # new_msg.twist.twist.linear.z = msg.twist.twist.linear.z
@@ -64,13 +65,23 @@ class GPS_vel_translate:
         (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
         self.heading =  yaw #* 180/3.141592
 
+    def shutdown(self):
+        """Unregisters publishers and subscribers and shutdowns timers"""
+        self.fix_vel_sub.unregister()
+        self.imu_data_sub.unregister()
+        self.gps_vel_body_pub.unregister()
+        rospy.loginfo("[GPS vel] Sayonara GPS vel. Nos vemo' en Disney.")
+
 def main(args):
-    ic = GPS_vel_translate()
     rospy.init_node('GPS_vel_translate', anonymous=True)
+    node = GPS_vel_translate()
+
     try:
         rospy.spin()
     except KeyboardInterrupt:
         print("Shutting down")
+
+    node.shutdown()
 
 if __name__ == '__main__':
     main(sys.argv)

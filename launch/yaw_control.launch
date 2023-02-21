@@ -4,7 +4,7 @@
     <arg name="pid_config"  default="$(find asv_chori)/config/pid.yaml"/>
 
     <!-- Controller -->
-    <node name="pid_controller" pkg="asv_chori" type="pid_controller.py" output="screen">
+    <node name="pid_yaw_control" pkg="asv_chori" type="pid_yaw_controller.py" output="screen">
         <rosparam command="load"    file="$(arg pid_config)"/>
     </node>
 

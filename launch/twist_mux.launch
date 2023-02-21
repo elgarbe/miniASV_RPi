@@ -1,0 +1,6 @@
+<launch>
+
+  <node pkg="topic_tools" type="mux" name="mux_twist_ref" args="/control/twist_ref /yaw_pid/twist_ref /radio_control/twist_ref mux:=mux_cmdvel">
+  </node>
+
+</launch>

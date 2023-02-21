@@ -1,9 +1,18 @@
 <launch>
    <param name="/use_sim_time" value="false"/>
 
-   <!-- rosserial -->
+   <!-- rosserial Navigation-->
    <include file="$(find asv_chori)/launch/rosserial.launch"/>
    
+   <!-- rosserial EcoSounder-->
+   <include file="$(find asv_chori)/launch/rosserial2.launch"/>
+
+   <!-- Radio Control -->
+   <include file="$(find asv_chori)/launch/radio_control.launch"/>
+
+   <!-- Twist Multiplexer -->
+   <include file="$(find asv_chori)/launch/twist_mux.launch"/>
+
    <!-- GPS RTK -->
    <include file="$(find asv_chori)/launch/gps_f9p.launch"/>
 

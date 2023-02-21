@@ -4,9 +4,9 @@
 # No hay saturación para las señales de control, si se quiere saturar,
 # que se haga aparte
 fvel_pid:
-    kp: 3.0
-    ki: 0.1
-    kd: 0.05
+    kp: 5.0
+    ki: 0.9
+    kd: 0.4
     isats: [-1.0, 1.0]
 
 yr_pid:
@@ -26,8 +26,15 @@ velocity_topic:
 
 twist_ref_topic:
     control/twist_ref
+
 course_ref_topic:
-    control/course_ref
+    radio_control/course_ref
+
+yaw_pid_twist_topic:
+    yaw_pid/twist_ref
+
+yaw_ref_topic:
+    control/yaw_ref
 
 command_topic:
     miniASV/command
@@ -37,3 +44,6 @@ command_motor_topic:
 
 command_wrench_topic:
     cmd_wrench
+
+reference_twist_topic:
+    control/yaw/twist_ref

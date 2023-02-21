@@ -1,6 +1,6 @@
 <launch>
 
-    <node pkg="asv_chori" type="gps_velocity_translate.py" name="gps_velocity_translate" output="screen" ns="chori">
+    <node pkg="asv_chori" type="gps_velocity_translate.py" name="gps_velocity_translate" output="screen">
     </node>
 
 </launch>

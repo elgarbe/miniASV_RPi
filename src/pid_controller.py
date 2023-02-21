@@ -15,9 +15,9 @@ import rospy
 import message_filters
 
 # Import the messages we're interested in sending and receiving, and having and sharing
-from geometry_msgs.msg import TwistStamped, WrenchStamped, Vector3, Vector3Stamped
+from geometry_msgs.msg import TwistStamped, WrenchStamped, Vector3
 from nav_msgs.msg import Odometry
-from asv_chori.msg import CourseStamped
+from std_msgs.msg import UInt8
 
 # Libraries for data manipulation
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
@@ -35,9 +35,6 @@ MAX_FWD_VEL     = 2     #m/s    -> Verificar en el arroyo si llega a esta veloci
 MAX_BCK_VEL     = 0.5   #m/s
 MAX_OUTPUT      = 1     #       -> Esto no sé bien que es. Creo
 MAX_YAW_RATE    = 0.5   #rad/s
-
-
-TWIST_CTRL = 0
 
 class PIDControllerNode(object):
     """Este Controlador es para un cluster de 2 UAV.
@@ -59,56 +56,47 @@ class PIDControllerNode(object):
         self.slop = float(rospy.get_param('~slop', 0.2))
         fvel_pid_param = rospy.get_param('~fvel_pid', None)
         yr_pid_param = rospy.get_param('~yr_pid', None)
-        y_pid_param = rospy.get_param('~y_pid', None)
+        ms_topic = rospy.get_param('~ms_topic', '/radio_control/ms')
 
         velocity_topic = rospy.get_param('~velocity_topic', None)
-        if TWIST_CTRL:
-            # Twist controller
-            reference_topic = rospy.get_param('~twist_ref_topic', None)
-            rospy.loginfo("[PID] TWIST control mode.")
-        else:
-            # Course controller
-            reference_topic = rospy.get_param('~course_ref_topic', None)
-            rospy.loginfo("[PID] COURSE control mode.")
+        # Twist controller
+        reference_topic = rospy.get_param('~twist_ref_topic', None)
+        rospy.loginfo("[PID] TWIST control mode.")
 
         command_topic = rospy.get_param('~command_wrench_topic', None)
         command_motors_topic = rospy.get_param('~command_motor_topic', None)
+
+        # Arranco suponiendo ModeSwitch en Manual
+        self.MS = 1
+        # Para detectar el cambio en el ModeSwitch
+        self.prevMS = 1
 
         ########################################################################################
         # Espero por los nodos que publican las velocidades y las referencias y obtengo
         # la primer referencia y velocidad
         rospy.loginfo("[PID] Waiting for reference initialization..")
-        if TWIST_CTRL:
-            # Twist controller
-            reference_topic = rospy.get_param('~twist_ref_topic', None)
-            reference = rospy.wait_for_message(reference_topic, TwistStamped)
-        else:
-            # Course controller
-            reference_topic = rospy.get_param('~course_ref_topic', None)
-            reference = rospy.wait_for_message(reference_topic, CourseStamped)
+        # Twist controller
+        reference = rospy.wait_for_message(reference_topic, TwistStamped)
         rospy.loginfo("[PID] Waiting for velocity initialization..")
         velocity = rospy.wait_for_message(velocity_topic, Odometry)
 
         self.t = velocity.header.stamp.to_sec()
 
-        # TODO: Por ahora son 3 PID, quizás podría usar una array de ellos como en el cluster
+        # TODO: Por ahora son 2 PID, quizás podría usar una array de ellos como en el cluster
         self.fvel_pid = pid.PIDController(None, self.t, None, **fvel_pid_param)
         self.yr_pid = pid.PIDController(None, self.t, None, **yr_pid_param)
-        self.y_pid = pid.PIDController(None, self.t, self.wrap2pi, **y_pid_param)
-
-        # self.fvel_pid = PIDController(kp=1.0, ki=0.5, kd=0.0, t0=self.t, isats=[-2.0, 2.0])
-        # self.yr_pid = PIDController(kp=1.0, ki=0.5, kd=0.0, t0=self.t, isats=[-0.5, 0.5])
 
         # Me suscribo al tópico donde se envian los datos de velocidad
         self.velocity_subs = message_filters.Subscriber(velocity_topic, Odometry)
         rospy.loginfo('[PID] Subscribing to ASV velocity topic: %s', velocity_topic)
 
         # Me suscribo al tópico donde se envía la referencia
-        if TWIST_CTRL:
-            self.reference_subs = message_filters.Subscriber(reference_topic, TwistStamped)
-        else:
-            self.reference_subs = message_filters.Subscriber(reference_topic, CourseStamped)
+        self.reference_subs = message_filters.Subscriber(reference_topic, TwistStamped)
         rospy.loginfo('[PID] Subscribing to ASV reference topic: %s', reference_topic)
+
+        # Me suscribo al tópico del ModeSwitch
+        self.ms_subs = rospy.Subscriber(ms_topic, UInt8, self.ms_cb)
+        rospy.loginfo('[PID] Subscribing to RC ModeSwitch topic: %s', ms_topic)
 
         # Creo el publicador que despacha los mensajes de fuerzas/torques de control
         self.command_publisher = rospy.Publisher(command_topic, WrenchStamped, queue_size=MSG_QUEUE_MAXLEN)
@@ -131,6 +119,9 @@ class PIDControllerNode(object):
         """Return input angle wraped between [-np.pi, np.pi)"""
         return np.mod(angle + np.pi, 2 * np.pi) - np.pi
 
+    def ms_cb(self, msg):
+        self.MS = msg.data
+
     def update(self, velocity_msg, reference_msg):
         """Compute control action based on references and velocities messages"""
 
@@ -138,34 +129,30 @@ class PIDControllerNode(object):
         fvel_meas = velocity_msg.twist.twist.linear.x
         yr_meas   = velocity_msg.twist.twist.angular.z
 
-        quat = (velocity_msg.pose.pose.orientation.x, velocity_msg.pose.pose.orientation.y, velocity_msg.pose.pose.orientation.z, velocity_msg.pose.pose.orientation.w)
-        _, _, y_meas = euler_from_quaternion(quat)
-
         # Obtengo las referencias de Forward Vel y Yaw Rate/Yaw
-        if TWIST_CTRL:
-            fvel_ref = reference_msg.twist.linear.x
-            yr_ref = -reference_msg.twist.angular.z
-        else:
-            fvel_ref = reference_msg.speed
-            yr_ref = 0
-            y_ref  = reference_msg.yaw
+        fvel_ref = reference_msg.twist.linear.x
+        yr_ref = -reference_msg.twist.angular.z
             
         # Calculo el intervalo de tiempo entre las muestras
         delta_t = velocity_msg.header.stamp.to_sec() - self.t
         self.t = velocity_msg.header.stamp.to_sec()
 
         if delta_t > 0.0:
+            # Verifico si se pasó de manual a automático
+            if ((self.MS == 2) & (self.prevMS == 1)):
+                rospy.loginfo("[PID] Resetting Integral term...")
+                # Cuando se produce el cambio de M a A reseteo el término integral
+                # TODO: Otra forma sería resetearlo siempre que estemos en manual
+                self.fvel_pid.i = np.zeros_like(self.fvel_pid.i)
+                self.yr_pid.i = np.zeros_like(self.yr_pid.i)
+                self.prevMS = 2
+            if ((self.MS == 1) & (self.prevMS == 2)):
+                self.prevMS = 1
+
             # Genero las acciones de control
             fvel_cmd = self.fvel_pid.update(fvel_ref, fvel_meas, self.t)
-            # fvel_cmd=0
             # print(fvel_ref, fvel_meas, self.t, fvel_cmd)
-
-            if not TWIST_CTRL:
-                yr_ref = self.y_pid.update(y_ref, y_meas, self.t)
-                # print('yaw:', y_ref, y_meas, yr_ref)
-
             yr_cmd  = self.yr_pid.update(yr_ref, yr_meas, self.t)
-
             # print ('yr: ', yr_ref, yr_meas, yr_cmd)
 
             fx = fvel_cmd       #self.deadzone_force(fvel_cmd, 2*MAX_FWD_THRUST * 0.06, 2*MAX_BCK_THRUST * 0.06)
@@ -181,13 +168,16 @@ class PIDControllerNode(object):
             # y publico dicho comando
             ##############################################################
             # Conversion de Fuerza_X y Torque_Z en thrust de cada motor
-            # Algoritmos usados en Heron
-            # self.compensate_force(fx, tz)
+            # Algoritmos usados en Heron, primero asegura el torque para girar y
+            # luego, el empuje que le sobra, lo pone en la fuerza
+            self.compensate_force(fx, tz)
 
             ##############################################################
             # Conversion de Fuerza_X y Torque_Z en thrust de cada motor
+            # Esta es la fórmula básica, no tiene prioridad de torque sobre fuerza
             left_thrust = fx/2 + tz/BOAT_WIDTH
             right_thrust = fx/2 - tz/BOAT_WIDTH
+
             # Preparo el mensaje de PWM (??) para cada motor
             cmd_output = Vector3()
             # Convierto Thrust en PWM
@@ -198,28 +188,31 @@ class PIDControllerNode(object):
     def compensate_force(self, force_x, tau_z):
         fx = force_x
         tauz = tau_z
+        # print('INICIO - fx: %06.2f, tauz: %06.2f' % (fx, tauz))
         # Maximo Torque posible alrededor de Z 
         # Se tiene en cuenta el Thrust en backward ya que es menor
         # al en forward
-        max_tauz = MAX_BCK_THRUST*2*BOAT_WIDTH
-        # Clampeo el torque del PID 
+        max_tauz = MAX_BCK_THRUST * 2 * BOAT_WIDTH  # Esto es 20 * 2 = 40 N * 0.4m = 16Nm
+        # Clampeo el torque del PID con el valor máximo recien calculado
         tauz = np.clip(tauz, -max_tauz, max_tauz)
+        # print('CLIP tauz: %06.2f' % (tauz))
 
         # Thrust de cada motor para conseguir el Torque en Z del PID
         left_thrust = -tauz/(2*BOAT_WIDTH)
         right_thrust = tauz/(2*BOAT_WIDTH)
+        # print('L thr: %06.2f, R thr: %06.2f' % (left_thrust, right_thrust))
 
         # Calculamos el máximo Thrust para cumplir con la fuerza en X
         # pedida por el PID LUEGO de asegurar el thrust para el giro
         max_fx = 0
-        if (tauz >= 0): 
-            if (fx >= 0):   #forward thrust on the left thruster will be limiting factor
+        if (tauz >= 0):     # Si el torque en Z es positivo o 0
+            if (fx >= 0):   # forward thrust on the left thruster will be limiting factor
                 max_fx = (MAX_FWD_THRUST - left_thrust) * 2
-                fx = np.minimum(max_fx,fx)
-            else :          #backward thrust on the right thruster will be limiting factor
+                fx = np.minimum(max_fx, fx)
+            else :          # backward thrust on the right thruster will be limiting factor
                 max_fx = (-MAX_BCK_THRUST - right_thrust) * 2
-                fx = np.maximum(max_fx,fx)
-        else :
+                fx = np.maximum(max_fx, fx)
+        else :              # Si el torque en Z es negativo
             if (fx >= 0 ) :
                 max_fx = (MAX_FWD_THRUST - right_thrust) * 2
                 fx = np.minimum(max_fx,fx)
@@ -230,7 +223,8 @@ class PIDControllerNode(object):
         # Sumo al thrust calculado el necesario para cumplir con la fuerza en X
         left_thrust += fx/2.0
         right_thrust += fx/2.0
-        
+        # print('CON fx: L thr: %06.2f, R thr: %06.2f' % (left_thrust, right_thrust))
+
         # Saturo los valores de thrust de cada motor
         left_thrust = self.saturate_thrusters(left_thrust)
         right_thrust = self.saturate_thrusters(right_thrust)
@@ -272,6 +266,9 @@ class PIDControllerNode(object):
         else:
             if (thrust < 0):
                 output = thrust * 101.25 + 1500 #(MAX_OUTPUT/MAX_BCK_THRUST)
+        if output < 1000: output = 1000
+        if output > 2000: output = 2000
+
         return output
 
     def shutdown(self):
